@@ -194,6 +194,7 @@ Navigate to the Monitoring tab of the job to view metrics and ensure data is bei
    - Verify that processed data is being stored in JSON format.
 
 #### Result
+Output JSON data
 ```json
 {"location":"Dow's Lake","avgIceThickness":24.879310344827587,"maxSnowAccumulation":9.9,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
 {"location":"NAC","avgIceThickness":25.268965517241387,"maxSnowAccumulation":9.8,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
