@@ -1,7 +1,7 @@
 # Final Project Assignment: Real-time Monitoring System for Rideau Canal Skateway
 
 
-1. **Scenario Description**: 
+## 1. Scenario Description ##
 This project implements a real-time monitoring system for the Rideau Canal Skateway using simulated IoT sensors, Azure IoT Hub, Azure Stream Analytics, and Azure Blob Storage. The system simulates sensor data (ice thickness, surface temperature, snow accumulation, external temperature) from three locations, processes it in real time, and stores aggregated outputs in Blob Storage.
 
 2. **System Architecture**:  
@@ -10,8 +10,8 @@ This project implements a real-time monitoring system for the Rideau Canal Skate
      - Azure Stream Analytics processing the incoming data.
      - Processed data being stored in Azure Blob Storage.
 
-3. **Implementation Details**:  
-   - **IoT Sensor Simulation**:
+## 3. Implementation Details ##
+   ### 3.1 IoT Sensor Simulation ###
 The IoT sensors are simulated using a Python script that emulates sensors at three Rideau Canal locations: Dow's Lake, Fifth Avenue, and NAC. The script generates data every 10 seconds and sends it to Azure IoT Hub using the Azure IoT Device SDK for Python.
 
 
@@ -60,90 +60,142 @@ Script Details:
 3. Error Handling: Catches exceptions and ensures client shutdown.
 4. Dependencies: Requires azure-iot-device (install via pip install azure-iot-device).
 5. Execution: Runs indefinitely until stopped, logging sent messages to the console for debugging.
+6. The script authenticates with IoT Hub using a device-specific connection string.
+
 ### Data Generation as JSON Format:
-```JSON
+```
 Sent: {"location": "Dow's Lake", "iceThickness": 20.9, "surfaceTemperature": -3.8, "snowAccumulation": 7.1, "externalTemperature": -6.0, "timestamp": "2025-04-14T15:31:43.069558Z"}
 Sent: {"location": "Fifth Avenue", "iceThickness": 21.4, "surfaceTemperature": -2.2, "snowAccumulation": 5.3, "externalTemperature": -7.9, "timestamp": "2025-04-14T15:31:43.514022Z"}
 Sent: {"location": "NAC", "iceThickness": 23.9, "surfaceTemperature": -4.8, "snowAccumulation": 3.0, "externalTemperature": -1.2, "timestamp": "2025-04-14T15:31:43.641111Z"}
 ```
-The script authenticates with IoT Hub using a device-specific connection string.
-Messages are sent asynchronously, with the SDK handling retries and connectivity issues
-   - **Azure IoT Hub Configuration**:
-     Azure IoT Hub is configured to ingest sensor data from the simulated devices and route it to Azure Stream Analytics for processing.
 
-## Configuration Steps:
 
-### Create IoT Hub:
-1. In Azure Portal, navigate to "Create a resource" and select "IoT Hub."
-2. Choose a subscription, resource group, and region.
+### 3.2 Azure IoT Hub Configuration
+Azure IoT Hub is configured to ingest sensor data from the simulated devices and route it to Azure Stream Analytics for processing.
+
+### Configuration Steps:
+#### Create IoT Hub:
+1. In Azure Portal, navigate to "Create a resource" and select "IoT hub"
+2. Choose a subscription`Azure for students`, resource group `IoT`, and region `Canada Central`.
 3. Select the Free tier (F1) for testing or an appropriate pricing tier.
-4. Name the IoT Hub (e.g., RideauCanalIoTHub).
-### Register Device:
-1. In the IoT Hub, go to "Devices" under "Device management."
-2. Add a new device (e.g., CanalSensor).
-3. Copy the primary connection string for the device (format: HostName=<hub-name>.azure-devices.net;DeviceId=CanalSensor;SharedAccessKey=<key>).
-4. Use this string in the simulation script.
-### Configure Endpoints:
-IoT Hub has a built-in endpoint (messages/events) for device-to-cloud messages.
-No custom endpoints are needed for this setup, as data is routed to Stream Analytics.
-   - **Azure Stream Analytics Job**:
-     The Azure Stream Analytics job processes incoming sensor data from IoT Hub in real time, aggregates it over 5-minute windows, and outputs the results to Azure Blob Storage.
+4. Name the IoT Hub:`rideaucanalIOT`.
+#### Register Device:
+- In the IoT Hub, go to "Devices" under "Device management."
+- Add a new device and add new devic id (i.e.`canalsensor`).
+- Copy the primary connection string for the device (format: HostName=<hub-name>.azure-devices.net;DeviceId=CanalSensor;SharedAccessKey=<key>).
+- Use this string in the simulation script.
+ #### Install Required Libraries
+Install the azure-iot-device library to simulate sensor data. Run the following command:
+``` pip install azure-iot-device ```
+#### Run the Python Script to Simulate Sensor Data
+Use the following Python script to simulate telemetry data and send it to the IoT Hub. Replace the CONNECTION_STRING with the device connection string.
+```python
 
-Job Configuration:
+import time
+import json
+import random
+from azure.iot.device import IoTHubDeviceClient
+from datetime import datetime
 
-### Create Job:
-1. In Azure Portal, create a new Stream Analytics job (e.g., CanalAnalytics).
-2. Assign it to a resource group and select a region.
-3. Set streaming units (e.g., 1 for small-scale processing).
-4. Define Input:
-5. Add an input:
-6. Type: Stream.
-7. Source: IoT Hub.
-8. Alias: SensorInput.
-IoT Hub: Select the configured IoT Hub (RideauCanalIoTHub).
-Consumer Group: Use the default ($Default) or create a new one.
-Authentication: Use managed identity or IoT Hub access keys.
-Define Output:
-Add an output:
-Type: Blob Storage/Data Lake Storage Gen2.
-Alias: BlobOutput.
-Storage Account: Select the configured storage account (e.g., canalstorage).
-Container: Use canal-data.
-Path Pattern: output/{date}/{location} (e.g., output/2024-11-23/DowsLake).
-Date Format: YYYY-MM-DD.
-Authentication: Use managed identity or storage account key.
-Query Logic:
-The query aggregates data per location over a 5-minute tumbling window.
-Calculates:
-Average ice thickness (avgIceThickness).
-Maximum snow accumulation (maxSnowAccumulation).
-Includes the window end time for reference.
-Sample Query:
+# Azure IoT Hub connection string
+CONNECTION_STRING = "HostName=rideaucanalIOT.azure-devices.net;DeviceId=canalsensor;SharedAccessKey=bfaR0bldfD43flG8DYyT9oTxp1Vq35YLEmkzFMALh30="
 
-sql
+def generate_sensor_data(location):
+    return {
+        "location": location,
+        "iceThickness": round(random.uniform(20, 30), 1),  # 20-30 cm
+        "surfaceTemperature": round(random.uniform(-5, 0), 1),  # -5 to 0°C
+        "snowAccumulation": round(random.uniform(0, 10), 1),  # 0-10 cm
+        "externalTemperature": round(random.uniform(-10, 0), 1),  # -10 to 0°C
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
 
-Copy
+def run_simulation():
+    client = IoTHubDeviceClient.create_from_connection_string(CONNECTION_STRING)
+    locations = ["Dow's Lake", "Fifth Avenue", "NAC"]
+    
+    while True:
+        for location in locations:
+            data = generate_sensor_data(location)
+            message = json.dumps(data)
+            client.send_message(message)
+            print(f"Sent: {message}")
+        time.sleep(10)  # Every 10 seconds
+
+if __name__ == "__main__":
+    run_simulation()
+```
+
+Execute the script to start sending telemetry data to IoT Hub with the python command : python canalsensor.py .
+
+### 3.3 Azure Blob Storage
+#### Create Storage Account
+- In Azure Portal, create: `rideauiotstorageaccount`.
+- Choose resource group i.e. IoT, region: canada central.
+- Use standard performance, LRS.
+
+#### Create Container
+- Name: `iotoutput`.
+- Access: Private.
+
+### 3.4 Azure Stream Analytics Job
+The Stream Analytics job processes data from Azure IoT Hub, aggregates it over 5-minute windows, and outputs the results to Azure Blob Storage.
+
+### Configuration Steps
+
+#### Create Job
+  - In the Azure Portal, create a Stream Analytics job named `processiot`.
+  - Assign the job to a resource group (IoT) and select a region: canada central.
+  - Hosting environment to Cloud.
+  - Set the streaming units to 1.
+
+#### Define Input
+- **Type**: Stream
+- **Source**: IoT Hub (named `rideaucanalIOT`)
+- **Alias**: `IoTsensorinput`
+- **Consumer Group**: `$Default`
+- **Authentication**: access keys
+
+#### Define Output
+- **Type**: Blob Storage
+- **Alias**: `iotsensoroutput`
+- **Storage Account**: `rideauiotstorageaccount`
+- **Container**: `iotoutput`
+- **Authentication**:Storage account key
+
+#### Sample Query
+```sql
 SELECT
     location,
     AVG(iceThickness) AS avgIceThickness,
     MAX(snowAccumulation) AS maxSnowAccumulation,
     System.Timestamp() AS windowEndTime
-INTO BlobOutput
-FROM SensorInput
+INTO iotsensoroutput
+FROM IoTsensorinput
 GROUP BY location, TumblingWindow(minute, 5)
-Query Explanation:
+```
+The job aggregates data per location over 5-minute tumbling windows and computes:
+- The average ice thickness (`avgIceThickness`)
+- The maximum snow accumulation (`maxSnowAccumulation`)
 
-Input: SensorInput reads JSON payloads from IoT Hub.
-Grouping: Groups data by location and 5-minute windows using TumblingWindow.
-Aggregations:
-AVG(iceThickness) computes the mean ice thickness.
-MAX(snowAccumulation) finds the highest snow accumulation.
-Output: Writes results to BlobOutput as JSON.
-Timestamp: Uses System.Timestamp() to mark the end of each window.
-Output Destination:
+#### Save and Start the Job
+Save the query and click Start on the Stream Analytics job.
 
-Data is sent to Azure Blob Storage in JSON format, organized by date and location
-   - **Azure Blob Storage**:
-     - Explain how the processed data is organized in Blob Storage (e.g., folder structure, file naming convention).
-     - Specify the formats of stored data (JSON/CSV).
+### 3.5 Verify the Output
+1. Monitor the Stream Analytics Job
+Navigate to the Monitoring tab of the job to view metrics and ensure data is being processed.
+
+2. Check Blob Storage
+   - Go to your Azure Storage Account.
+   - Navigate to the container specified in the output i.e.`iotsensoroutput` .
+   - Verify that processed data is being stored in JSON format.
+
+#### Sample Output File
+**Path**: `0_0a7fe6f699714f67a8b86dff6161f6e3_1.json`
+```json
+"location":"Dow's Lake","avgIceThickness":24.879310344827587,"maxSnowAccumulation":9.9,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
+{"location":"NAC","avgIceThickness":25.268965517241387,"maxSnowAccumulation":9.8,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
+{"location":"Fifth Avenue","avgIceThickness":25.76206896551724,"maxSnowAccumulation":9.4,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
+```
+#### Folder Structure
 ![image](https://github.com/user-attachments/assets/6fcbb483-986e-4e3d-b686-bf9ab883fbe4)
