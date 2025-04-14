@@ -4,11 +4,8 @@
 ## 1. Scenario Description ##
 This project implements a real-time monitoring system for the Rideau Canal Skateway using simulated IoT sensors, Azure IoT Hub, Azure Stream Analytics, and Azure Blob Storage. The system simulates sensor data (ice thickness, surface temperature, snow accumulation, external temperature) from three locations, processes it in real time, and stores aggregated outputs in Blob Storage.
 
-2. **System Architecture**:  
-   - Include a clear diagram illustrating the data flow:
-     - IoT sensors pushing simulated data to Azure IoT Hub.
-     - Azure Stream Analytics processing the incoming data.
-     - Processed data being stored in Azure Blob Storage.
+## 2. System Architecture:  
+   
 
 ## 3. Implementation Details ##
    ### 3.1 IoT Sensor Simulation ###
