@@ -193,12 +193,10 @@ Navigate to the Monitoring tab of the job to view metrics and ensure data is bei
    - Navigate to the container specified in the output i.e.`iotsensoroutput` .
    - Verify that processed data is being stored in JSON format.
 
-#### Sample Output File
+#### Result
 **Path**: `0_0a7fe6f699714f67a8b86dff6161f6e3_1.json`
 ```json
 "location":"Dow's Lake","avgIceThickness":24.879310344827587,"maxSnowAccumulation":9.9,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
 {"location":"NAC","avgIceThickness":25.268965517241387,"maxSnowAccumulation":9.8,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
 {"location":"Fifth Avenue","avgIceThickness":25.76206896551724,"maxSnowAccumulation":9.4,"windowEndTime":"2025-04-14T15:45:00.0000000Z"}
 ```
-#### Folder Structure
-![image](https://github.com/user-attachments/assets/6fcbb483-986e-4e3d-b686-bf9ab883fbe4)
