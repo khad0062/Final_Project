@@ -41,7 +41,7 @@ Copy
 }
 Script Used (sensor-simulation/simulate_sensors.py):
 
-python
+```python
 
 Copy
 import time
